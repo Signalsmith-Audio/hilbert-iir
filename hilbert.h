@@ -49,9 +49,9 @@ struct HilbertIIR {
 	
 	HilbertIIR(Sample sampleRate=48000, int channels=1) {
 		HilbertIIRCoeffs<Sample> coeffs;
-		direct = coeffs.direct;
 		
 		Sample freqFactor = std::min<Sample>(0.46, 20000/sampleRate);
+		direct = coeffs.direct*2*freqFactor;
 		for (int i = 0; i < order; ++i) {
 			Complex coeff = coeffs.coeffs[i]*freqFactor;
 			coeffsR[i] = coeff.real();
