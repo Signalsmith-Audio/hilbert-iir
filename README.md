@@ -23,7 +23,7 @@ std::complex<float> out = hilbert(in);
 Multi-channel:
 
 ```cpp
-HilbertIIR hilbert(96000, 2); // 96kHz stereo
+HilbertIIR hilbert(44100, 2); // 44.1kHz stereo
 
 float in0 = /*...*/, in1 = /*...*/;
 std::complex<float> out0 = hilbert(in0, 0);
