@@ -7,7 +7,7 @@ It uses a pre-baked continuous-time filter, which is converted into a discrete-t
 ## How to use it:
 
 ```cpp
-#import "hilbert.h"
+#include "hilbert.h"
 using HilbertIIR = signalsmith::hilbert::HilbertIIR<float>;
 ```
 

@@ -48,12 +48,17 @@ struct HilbertIIR {
 	static constexpr int order = HilbertIIRCoeffs<Sample>::order;
 	
 	HilbertIIR(Sample sampleRate=48000, int channels=1) {
-		Sample freqFactor = std::min<Sample>(0.5, 20000/sampleRate);
-		for (auto &z : coeffs.coeffs) {
-			z *= freqFactor;
-		}
-		for (auto &z : coeffs.poles) {
-			z = std::exp(freqFactor*z);
+		HilbertIIRCoeffs<Sample> coeffs;
+		direct = coeffs.direct;
+		
+		Sample freqFactor = std::min<Sample>(0.46, 20000/sampleRate);
+		for (int i = 0; i < order; ++i) {
+			Complex coeff = coeffs.coeffs[i]*freqFactor;
+			coeffsR[i] = coeff.real();
+			coeffsI[i] = coeff.imag();
+			Complex pole = std::exp(coeffs.poles[i]*freqFactor);
+			polesR[i] = pole.real();
+			polesI[i] = pole.imag();
 		}
 		states.resize(channels);
 		reset();
@@ -61,25 +66,41 @@ struct HilbertIIR {
 	
 	void reset() {
 		for (auto &state : states) {
-			for (auto &z : state) z = 0;
+			for (auto &v : state.real) v = 0;
+			for (auto &v : state.imag) v = 0;
 		}
 	}
 	
 	Complex operator()(Sample x, int channel=0) {
-		auto &state = states[channel];
+		// Really we're just doing: state[i] = state[i]*poles[i] + x*coeffs[i]
+		// but std::complex is slow without -ffast-math, so we've unwrapped it
+		State state = states[channel], newState;
 		for (int i = 0; i < order; ++i) {
-			state[i] = state[i]*coeffs.poles[i] + x*coeffs.coeffs[i];
+			newState.real[i] = state.real[i]*polesR[i] - state.imag[i]*polesI[i] + x*coeffsR[i];
 		}
-		Complex result = x*coeffs.direct;
 		for (int i = 0; i < order; ++i) {
-			result += state[i];
+			newState.imag[i] = state.real[i]*polesI[i] + state.imag[i]*polesR[i] + x*coeffsI[i];
 		}
-		return result;
+		states[channel] = newState;
+
+		Sample resultR = x*direct;
+		for (int i = 0; i < order; ++i) {
+			resultR += newState.real[i];
+		}
+		Sample resultI = 0;
+		for (int i = 0; i < order; ++i) {
+			resultI += newState.imag[i];
+		}
+		return {resultR, resultI};
 	}
 private:
-	HilbertIIRCoeffs<Sample> coeffs;
-	using State = std::array<Complex, order>;
+	using Array = std::array<Sample, order>;
+	Array coeffsR, coeffsI, polesR, polesI;
+	struct State {
+		Array real, imag;
+	};
 	std::vector<State> states;
+	Sample direct;
 };
 
 }} // namespace
