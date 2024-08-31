@@ -56,4 +56,5 @@ int main() {
 	plot(44100);
 	plot(48000);
 	plot(96000);
+	plot(192000);
 }
