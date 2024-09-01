@@ -1,5 +1,11 @@
-#ifndef SIGNALSMITH_IIR_HILBERT_H
-#define SIGNALSMITH_IIR_HILBERT_H
+/* Signalsmith's Hilbert IIR: A single-file, dependency-free Hilbert filter.
+
+Copyright (c) 2024 Geraint Luff / Signalsmith Audio Ltd.
+
+Released under 0BSD: BSD Zero Clause License
+*/
+#ifndef SIGNALSMITH_HILBERT_IIR_H
+#define SIGNALSMITH_HILBERT_IIR_H
 
 #include <complex>
 #include <array>
@@ -47,13 +53,13 @@ struct HilbertIIR {
 	using Complex = std::complex<Sample>;
 	static constexpr int order = HilbertIIRCoeffs<Sample>::order;
 	
-	HilbertIIR(Sample sampleRate=48000, int channels=1) {
+	HilbertIIR(Sample sampleRate=48000, int channels=1, Sample passbandGain=2) {
 		HilbertIIRCoeffs<Sample> coeffs;
 		
 		Sample freqFactor = std::min<Sample>(0.46, 20000/sampleRate);
-		direct = coeffs.direct*2*freqFactor;
+		direct = coeffs.direct*2*passbandGain*freqFactor;
 		for (int i = 0; i < order; ++i) {
-			Complex coeff = coeffs.coeffs[i]*freqFactor;
+			Complex coeff = coeffs.coeffs[i]*freqFactor*passbandGain;
 			coeffsR[i] = coeff.real();
 			coeffsI[i] = coeff.imag();
 			Complex pole = std::exp(coeffs.poles[i]*freqFactor);

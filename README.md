@@ -1,6 +1,6 @@
-# Hilbert IIR
+# Signalsmith's IIR Hilbert
 
-This is a (short, dependency-free, C++ header-only) IIR Hilbert filter with an [0BSD License](LICENSE.txt).
+This is a (short, dependency-free, single-file C++ header) IIR Hilbert filter with an [0BSD License](LICENSE.txt).
 
 It uses a pre-baked continuous-time filter, which is converted into a discrete-time filter (with an upper cutoff of 20kHz) for a given sample-rate.  This gives it the same phase/amplitude responses at higher sample-rates (as per my API London 2024 talk).
 
@@ -30,11 +30,13 @@ std::complex<float> out0 = hilbert(in0, 0);
 std::complex<float> out1 = hilbert(in1, 1);
 ```
 
-Reset everything to 0:
+Reset the state to 0:
 
 ```cpp
 hilbert.reset();
 ```
+
+The constructor has an optional third `passbandGain` argument.  This defaults to `2` to compensate for the negative frequencies being removed, and means the volume will match if you just use `complex.real()`. 
 
 ## Response
 
@@ -45,6 +47,8 @@ Here's the impulse/spectrum when running at 44.1kHz:
 Here's the impulse/spectrum when running at 96kHz:
 
 <img src="design/plots/plot-96000@2x.png" width="472" height="422">
+
+The passband ripple is 0.5dB.
 
 ### Filter design / IIT
 
@@ -58,4 +62,4 @@ The code in `design/main.cpp` generates SVG plots of the impulse/spectrum, so if
 
 ## License
 
-The license is currently [0BSD](LICENSE.txt), but if you need anything else, get in touch.
+The license is [0BSD](LICENSE.txt), which lets you use/modify/redistribute the code for any purpose ("public domain equivalent").  If you need anything else, get in touch.

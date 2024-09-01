@@ -8,7 +8,7 @@ using Complex = std::complex<Sample>;
 
 void plot(Sample sampleRate=48000) {
 	int impulseLength = 100, fftSize = 32768;
-	signalsmith::hilbert::HilbertIIR<Sample> hilbert(sampleRate);
+	signalsmith::hilbert::HilbertIIR<Sample> hilbert(sampleRate, 1, 1);
 	
 	signalsmith::plot::Figure figure;
 	auto &impulsePlot = figure(0, 0).plot(400, 80);
