@@ -17,7 +17,7 @@ namespace signalsmith { namespace hilbert {
 template<typename Sample>
 struct HilbertIIRCoeffs {
 	static constexpr int order = 12;
-	std::array<std::complex<Sample>, order> coeffs{{
+	const std::array<std::complex<Sample>, order> coeffs{{
 		{Sample(-0.000224352093802), Sample(0.00543499018201)},
 		{Sample(0.0107500557815), Sample(-0.0173890685681)},
 		{Sample(-0.0456795873917), Sample(0.0229166931429)},
@@ -31,7 +31,7 @@ struct HilbertIIRCoeffs {
 		{Sample(0.280729061131), Sample(-0.155131206606)},
 		{Sample(-0.0935061787728), Sample(0.00512245855404)}
 	}};
-	std::array<std::complex<Sample>, order> poles{{
+	const std::array<std::complex<Sample>, order> poles{{
 		{Sample(-0.00495335976478), Sample(0.0092579876872)},
 		{Sample(-0.017859491302), Sample(0.0273493725543)},
 		{Sample(-0.0413714373155), Sample(0.0744756910287)},
@@ -45,7 +45,7 @@ struct HilbertIIRCoeffs {
 		{Sample(-0.280197469471), Sample(5.99598602388)},
 		{Sample(-0.0852751354531), Sample(6.3048492377)}
 	}};
-	Sample direct = 0.000262057212648;
+	const Sample direct = 0.000262057212648;
 };
 
 template<typename Sample>
@@ -53,7 +53,9 @@ struct HilbertIIR {
 	using Complex = std::complex<Sample>;
 	static constexpr int order = HilbertIIRCoeffs<Sample>::order;
 	
-	HilbertIIR(Sample sampleRate=48000, int channels=1, Sample passbandGain=2) {
+	HilbertIIR(Sample sampleRate=48000, int channels=1, Sample passbandGain=2) 
+	:	states(channels), newState ({ Array(), Array() })
+	{
 		HilbertIIRCoeffs<Sample> coeffs;
 		
 		Sample freqFactor = std::min<Sample>(0.46, 20000/sampleRate);
@@ -66,7 +68,8 @@ struct HilbertIIR {
 			polesR[i] = pole.real();
 			polesI[i] = pole.imag();
 		}
-		states.resize(channels);
+		//states.resize(channels);
+		
 		reset();
 	}
 	
@@ -77,10 +80,12 @@ struct HilbertIIR {
 		}
 	}
 	
-	Complex operator()(Sample x, int channel=0) {
+	std::pair<Sample, Sample> operator()(Sample x, int channel=0) {
 		// Really we're just doing: state[i] = state[i]*poles[i] + x*coeffs[i]
 		// but std::complex is slow without -ffast-math, so we've unwrapped it
-		State state = states[channel], newState;
+		State& state = states[channel];
+		
+
 		for (int i = 0; i < order; ++i) {
 			newState.real[i] = state.real[i]*polesR[i] - state.imag[i]*polesI[i] + x*coeffsR[i];
 		}
@@ -105,6 +110,7 @@ private:
 	struct State {
 		Array real, imag;
 	};
+	State newState;
 	std::vector<State> states;
 	Sample direct;
 };
