@@ -99,6 +99,27 @@ struct HilbertIIR {
 		}
 		return {resultR, resultI};
 	}
+
+	Complex operator()(Complex x, int channel=0) {
+		State state = states[channel], newState;
+		for (int i = 0; i < order; ++i) {
+			newState.real[i] = state.real[i]*polesR[i] - state.imag[i]*polesI[i] + x.real()*coeffsR[i] - x.imag()*coeffsI[i];
+		}
+		for (int i = 0; i < order; ++i) {
+			newState.imag[i] = state.real[i]*polesI[i] + state.imag[i]*polesR[i] + x.real()*coeffsI[i] + x.imag()*coeffsR[i];
+		}
+		states[channel] = newState;
+
+		Sample resultR = x.real()*direct;
+		for (int i = 0; i < order; ++i) {
+			resultR += newState.real[i];
+		}
+		Sample resultI = x.imag()*direct;;
+		for (int i = 0; i < order; ++i) {
+			resultI += newState.imag[i];
+		}
+		return {resultR, resultI};
+	}
 private:
 	using Array = std::array<Sample, order>;
 	Array coeffsR, coeffsI, polesR, polesI;
