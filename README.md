@@ -60,6 +60,10 @@ The C++ code (`hilbert.h`) then converts this to a discrete-time filter using th
 
 The code in `design/main.cpp` generates SVG plots of the impulse/spectrum, so if you change the filter design you can see the results.
 
-## License
+## License / modifications
 
 The license is [0BSD](LICENSE.txt), which lets you use/modify/redistribute the code for any purpose ("public domain equivalent").  If you need anything else, get in touch.
+
+If you redesign the filter coefficients, please add that clearly to any docs/description so that users know what to expect.
+
+If you translate this code into any other programming language (which would be awesome!), send us a message/email so we can add a link here.
